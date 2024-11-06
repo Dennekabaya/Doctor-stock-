@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/css/report.css">
+  <title>Report</title>
+  <style>
+    .custom-alert {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1000; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      background-color: rgba(0, 0, 70, 0.5); /* Black w/ opacity */
+      justify-content: center; /* Center horizontally */
+      align-items: center; /* Center vertically */
+      animation: bounceIn 0.5s linear;
+    }
+    .alert-content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+    .wobble {
+      animation: shakeX 1s infinite;
+    }
+    @keyframes shakeX {
+      from, to {
+        transform: translate3d(0, 0, 0);
+      }
+      10%, 30%, 50%, 70%, 90% {
+        transform: translate3d(-10px, 0, 0);
+      }
+      20%, 40%, 60%, 80% {
+        transform: translate3d(10px, 0, 0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <ul>
+    <li><a href="/html/cashier.html">Cashier</a></li>
+    <li><a href="/html/customer.html">Customer</a></li>
+    <li><a href="/html/inventory.html">Inventory</a></li>
+    <li><a href="#" class="active">Report</a></li>
+  </ul>
+
+  <div id="report-section" class="section">
+    <h2>Sales and Inventory Report</h2>
+    <div class="report-container">
+      <div class="report-card">
+        <h3>Total Sales</h3>
+        <p id="total-sales">$0.00</p>
+      </div>
+      <div class="report-card">
+        <h3>Total Customers</h3>
+        <p id="total-customers">0</p>
+      </div>
+      <div class="report-card">
+        <h3>Total Commission Points</h3>
+        <p id="total-commission">0</p>
+      </div>
+      <div class="report-card" id="shake">
+        <h3>Inventory Status</h3>
+        <p id="low-stock-items">0 items low on stock</p>
+      </div>
+    </div>
+    <button id="generate-report">Generate Report</button>
+  </div>
+
+  <div id="custom-alert" class="custom-alert">
+    <div class="alert-content">
+      <p id="alert-message"></p>
+      <label for="choice">Your Choice:</label>
+      <input type="text" id="choice">
+      <button id="close-alert">OK</button>
+    </div>
+  </div>
+
+  <div class="add-item-form">
+    <h3>Update Item Quantity</h3>
+    <form id="update-item-quantity">
+      <label for="update-item-name">Item Name:</label>
+      <input type="text" id="update-quantity-item-name" required>
+      <label for="update-item-quantity">Number of items:</label>
+      <input type="number" id="update-quantity-item-quantity" min="0" required>
+      <button type="submit">Update Quantity</button>
+    </form>
+  </div>
+  <script src="/main.js"></script>
+  <script>
+    function showCustomAlert(message) {
+      return new Promise((resolve) => {
+        document.getElementById('alert-message').textContent = message;
+        document.getElementById('custom-alert').style.display = 'flex'; 
+        document.getElementById('close-alert').onclick = function() {
+          const choice = document.getElementById('choice').value;
+          resolve(choice); 
+          document.getElementById('custom-alert').style.display = 'none';
+        };});
+    }
+
+    async function automaticRe_stock(instance, items) {
+      for (const item of items) {
+        const decision = await showCustomAlert(`Would you like to add more ${item['item']} to the stock?\n A. Yes\n B. No`);
+        if (decision === 'A') {
+          const number = await showCustomAlert(`How many ${item['item']} would you like to add?`);
+          if (number) {
+            console.log(instance.updateQuantity(item['item'], Number(number)));
+          }
+        }else if (decision === 'B') {
+          return;}}}
+    async function stock_checker(instance) {
+      const stock = instance.stockTracker();
+      const items_toRestock = [];
+      for (let item of stock) {
+        if (item['available'] < 10) {
+          document.getElementById('low-stock-items').innerText = `${item['item']} is running out of stock with ${item['available']} pieces left`;
+          document.getElementById('low-stock-items').classList = 'wobble';
+          items_toRestock.push(item);}}
+      if (items_toRestock.length > 0) {
+        await automaticRe_stock(instance, items_toRestock);
+      } else {
+        document.getElementById('low-stock-items').innerText = 'Stock is in good state✅';
+        document.getElementById('low-stock-items').classList = '';}}
+    // Set the interval to check stock
+    window.setInterval(() => stock_checker(cashier), 8000);
+    
+    // Update the UI with sales data
+    let sales = document.getElementById('total-sales');
+    let totalCustomers = document.getElementById('total-customers');
+    let totalCommission = document.getElementById('total-commission');
+    let stockStatus = document.getElementById('low-stock-items');
+    let salesHistory = JSON.parse(localStorage.getItem('sales_History')) || [];
+    let customers = JSON.parse(localStorage.getItem('customers')) || [];
+    let s_ales = 0;
+    let customerCount = 0;
+    let commissionTotals = 0;
+
+    // Update the sales
+    for (var obj of salesHistory) {
+      s_ales += obj['totals'] || 0;
+    }
+
+    // Update customer count and commission points
+    customerCount = customers.length;
+    commissionTotals = customers.reduce((total, customer) => total + (customer['points'] || 0), 0);
+    
+    sales.innerText = `$${s_ales}.00`;
+    totalCustomers.innerText = `${customerCount}`;
+    totalCommission.innerText = `${commissionTotals} points`;
+  </script>
+</body>
+</html>
