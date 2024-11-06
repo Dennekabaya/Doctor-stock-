@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customer Management</title>
+  <link rel="stylesheet" href="/css/customer.css">
+  <style>
+   .custom-alert {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    background-color: rgba(0, 70, 0, 0.5); /* Black w/ opacity */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    animation:bounceIn 0.5s linear;
+}
+.alert-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+@keyframes bounceInDown {
+  from,
+  60%,
+  75%,
+  90%,
+  to {
+    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+
+  0% {
+    opacity: 0;
+    -webkit-transform: translate3d(0, -3000px, 0) scaleY(3);
+    transform: translate3d(0, -3000px, 0) scaleY(3);
+  }
+
+  60% {
+    opacity: 1;
+    -webkit-transform: translate3d(0, 25px, 0) scaleY(0.9);
+    transform: translate3d(0, 25px, 0) scaleY(0.9);
+  }
+
+  75% {
+    -webkit-transform: translate3d(0, -10px, 0) scaleY(0.95);
+    transform: translate3d(0, -10px, 0) scaleY(0.95);
+  }
+
+  90% {
+    -webkit-transform: translate3d(0, 5px, 0) scaleY(0.985);
+    transform: translate3d(0, 5px, 0) scaleY(0.985);
+  }
+
+  to {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+
+  </style>
+</head>
+
+<body>
+<ul class="ul">
+ <li class="li"><a href="/html /cashier.html">cashier</a></li>
+  <li class="li"><a href="/html /customer.html" class="active">customer</a></li>
+    <li class="li"><a href="/html /inventory.html">inventory</a></li>
+     <li class="li"><a href="/html /history.html">history</a></li>
+  </ul>
+  
+  
+   <div id="custom-alert" class="custom-alert">
+   <div class="alert-content">
+    <p id="alert-message"></p>
+    <button id="close-alert">OK</button>
+     </div>
+   </div>
+  <div id="customer-management-section" class="section">
+    <h2>Customer Management</h2>
+    <div class="customer-form">
+      <h3>Register New Customer</h3>
+      <form id="register-customer-form">
+       <label for="customer-id">Customer ID:</label>
+       <input type="text" id="customer-id" required>
+        <label for="customer-name">Customer Name:</label>
+        <input type="text" id="customer-name" required>
+        <label for="customer-pin">Customer PIN:</label>
+        <input type="text" id="customer-pin" required>
+        <button type="submit">Register Customer</button>
+      </form>
+    </div>
+
+ <div class="customer-history">
+ <h3 style="color:#28A745;">Existing Customers</h3>
+ <ul id="Existing-customer-list">
+   
+ </ul>
+</div>
+ 
+   <div class="customer-history">
+    <h3 style="color:tomato;">Blocked customers</h3>
+    <ul id="Blocked-customer-list">
+   
+      </ul>
+    </div>
+  </div>
+  <script>
+    function showCustomAlert(message) {
+  document.getElementById('alert-message').textContent = message;
+  document.getElementById('custom-alert').style.display = 'flex'; // Use flex for centering
+  }// Close the alert when the user clicks on the "OK" button
+document.getElementById('close-alert').onclick = function() {
+  document.getElementById('custom-alert').style.display = 'none';}
+// To close the alert with the Esc key
+document.addEventListener('keydown', function(event) {
+  if (event.key === "Escape") {
+    document.getElementById('custom-alert').style.display = 'none';
+  }
+  
+});
+ //--------updating the Ui asynchronously --------//
+function updateCustomers(){
+  //---from main js we added customers to storage//
+ let customersData=JSON.parse(localStorage.getItem('customers'))
+ let existing=document.getElementById('Existing-customer-list')
+ let blocked=document.getElementById('Blocked-customer-list')
+ blocked.innerHTML=''
+ existing.innerHTML=''
+ //--------update the ui by separating customers -//
+ for(var customer in customersData){
+   
+    if(customersData[customer]['card']=='working'){
+ let div = document.createElement('div')
+ div.innerHTML=`<h3>card number:${customersData[customer]['id']}</h3>`
+ div.className = 'customers'
+ for (var data in customersData[customer]) {
+   let li = document.createElement('li')
+   li.innerText = `${data}:${customersData[customer][data]}`
+   div.appendChild(li)}
+ existing.appendChild(div)
+    }
+    
+  if(customersData[customer]['card']=='blocked'){
+     let li=document.createElement('li')
+  for (var data in customersData[customer]) {
+   li.innerText+=`${data}:${customersData[customer][data]} `
+ }
+    blocked.appendChild(li)
+   }
+
+   }
+ }
+
+window.setInterval(updateCustomers,2000)
+  
+ 
+  </script>
+  <script src="/main.js"></script>
+</body>
+</html>
